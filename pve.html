@@ -21,7 +21,7 @@ title: Play vs Computer
                     <p>Bot Rating: <span id="currentBotRating" class="badge badge-info"></span></p>
                     <p>Your Rating: <span id="userRating" class="badge badge-info"></span></p>
 
-                    <div id="boardContainer" style="margin-top: 1rem; background: linear-gradient(135deg, #d8a375, #c08a5c); width: 100%; max-width: 600px; aspect-ratio: 1; border: 2px solid #444;">
+                    <div id="boardContainer" style="margin-top: 1rem; background: linear-gradient(135deg, #d8a375, #c08a5c); width: 100%; max-width: 600px; aspect-ratio: 1; border: 2px solid #444;[...]
                         <div id="board" style="width: 100%; height: 100%;"></div>
                     </div>
 
@@ -87,7 +87,10 @@ title: Play vs Computer
         // Prevent moving opponent's pieces
         if (game.turn() === 'w' && piece[0] === 'b') return false;
         if (game.turn() === 'b' && piece[0] === 'w') return false;
-        
+
+        const moves = game.moves({ square: source, verbose: true });
+        if (!moves || moves.length === 0) return false;
+
         // Highlight legal moves
         window.clearMoveHighlights();
         window.highlightLegalMoves(game, source);
@@ -96,7 +99,13 @@ title: Play vs Computer
     onDragEnd: function() {
         window.clearMoveHighlights();
     },
-    onDrop: onPlayerMove,
+    onDrop: function(source, target) {
+        const targetEl = document.querySelector(`[data-square="${target}"]`);
+        if (!targetEl || !targetEl.classList.contains('legal-move-highlight')) {
+            return 'snapback';
+        }
+        return onPlayerMove(source, target);
+    },
     pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
 };
 
@@ -198,6 +207,12 @@ function updateGameStatus(msg) {
     function onPlayerMove(source, target) {
         async function executePlayerMove() {
             if (isComputerTurn) return 'snapback';
+
+            const legalMoves = game.moves({ square: source, verbose: true }) || [];
+            const isLegal = legalMoves.some(move => move.to === target);
+            if (!isLegal) {
+                return 'snapback';
+            }
 
             const move = game.move({
                 from: source,
