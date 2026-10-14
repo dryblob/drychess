@@ -2,7 +2,7 @@
 export const botDatabase = [
   {
     id: "bot-rookie",
-    name: "Rookiebomb",
+    name: "alt+tab",
     level: 1,
     rating: 400,
     description: "Perfect for beginners",
